@@ -369,10 +369,10 @@ function rQItems(){
   }).join("");
 }
 
-function quickBCfromList(id,e){e.stopPropagation();const q=quotes.find(q=>q.id==id);if(!q)return;if(!confirm("Créer un Bon de commande depuis "+q.number+" ?"))return;const bc=cloneToBC(q);bc._type="bc";bcCounter++;bcList.push(bc);const qi=quotes.findIndex(x=>x.id==id);if(qi>=0)quotes[qi].status="Accept\u00e9";saveAll();mainTab="bc";render();}
-function quickBPfromList(id,e){e.stopPropagation();const q=quotes.find(q=>q.id==id);if(!q)return;if(!confirm("Créer un Bon de production depuis "+q.number+" ?"))return;const bp=cloneToBP(q);bp._type="bp";bpCounter++;bpList.push(bp);const qi=quotes.findIndex(x=>x.id==id);if(qi>=0&&quotes[qi].status==="Brouillon")quotes[qi].status="Accept\u00e9";saveAll();mainTab="bp";render();}
+async function quickBCfromList(id,e){e.stopPropagation();const q=quotes.find(q=>q.id==id);if(!q)return;if(!confirm("Créer un Bon de commande depuis "+q.number+" ?"))return;const bc=cloneToBC(q);bc._type="bc";bcCounter++;bcList.push(bc);const qi=quotes.findIndex(x=>x.id==id);if(qi>=0)quotes[qi].status="Accept\u00e9";saveAll();mainTab="bc";render();}
+async function quickBPfromList(id,e){e.stopPropagation();const q=quotes.find(q=>q.id==id);if(!q)return;if(!confirm("Créer un Bon de production depuis "+q.number+" ?"))return;const bp=cloneToBP(q);bp._type="bp";bpCounter++;bpList.push(bp);const qi=quotes.findIndex(x=>x.id==id);if(qi>=0&&quotes[qi].status==="Brouillon")quotes[qi].status="Accept\u00e9";saveAll();mainTab="bp";render();}
 async function quickBC(){if(!confirm("Créer un Bon de commande depuis ce devis ?"))return;const bc=cloneToBC(cur);bc._type="bc";bcCounter++;bcList.push(bc);const qi=quotes.findIndex(q=>q.id===cur.id);if(qi>=0)quotes[qi].status="Accept\u00e9";await saveAll();cur=bc;view="preview";render();}
-function quickBP(){if(!confirm("Créer un Bon de production depuis ce devis ?"))return;const bp=cloneToBP(cur);bp._type="bp";bpCounter++;bpList.push(bp);const qi=quotes.findIndex(q=>q.id===cur.id);if(qi>=0&&quotes[qi].status==="Brouillon")quotes[qi].status="Accept\u00e9";await saveAll();cur=bp;view="preview";render();}
+async function quickBP(){if(!confirm("Créer un Bon de production depuis ce devis ?"))return;const bp=cloneToBP(cur);bp._type="bp";bpCounter++;bpList.push(bp);const qi=quotes.findIndex(q=>q.id===cur.id);if(qi>=0&&quotes[qi].status==="Brouillon")quotes[qi].status="Accept\u00e9";await saveAll();cur=bp;view="preview";render();}
 
 function rDocList(type){
   const list=type==="bc"?bcList:bpList;
@@ -411,7 +411,7 @@ function rClientItems(){
 }
 function openNewClient(){cur=nClient();clientCounter++;view="client-edit";render();}
 function oClientEdit(id){cur=JSON.parse(JSON.stringify(clients.find(c=>c.id===id)));view="client-edit";render();}
-function delClient(id){if(confirm("Supprimer ?")){clients=clients.filter(c=>c.id!==id);saveAll();rClientItems();}}
+async function delClient(id){if(confirm("Supprimer ?")){clients=clients.filter(c=>c.id!==id);saveAll();rClientItems();}}
 async function saveClient(){const i=clients.findIndex(c=>c.id===cur.id);if(i>=0)clients[i]=cur;else clients.push(cur);await saveAll();mainTab="clients";view="list";render();}
 function rClientEdit(){
   const c=cur;
