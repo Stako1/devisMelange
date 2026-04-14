@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Devis Pro — Mélange Imprimerie</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -188,7 +188,7 @@ function nClient(){return{id:Date.now(),number:"CLI-"+(""+clientCounter).padStar
 
 // Supabase
 const SUPA_URL="https://ljqxebgcekfxaiffkxrc.supabase.co";
-const SUPA_KEY="sb_publishable_LYvQZeCQ5L2GjDtkTW1G2A_99NBJEfW";
+const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqcXhlYmdjZWtmeGFpZmZreHJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MzY4NTEsImV4cCI6MjA5MTMxMjg1MX0.luj0aDwhvVNgBDpVJ1fLPzBo4dgQHm4zDi60t5uvWLM";
 const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 let supaLoaded=false;
 
@@ -239,6 +239,17 @@ async function saveAll(){
 }
 
 async function loadFromSupabase(){
+  // Test connection first
+  try{
+    const test=await supa.from("counters").select("id").limit(1);
+    if(test.error){
+      console.error("Connection test failed:",test.error);
+      showSync("⚠️ Erreur connexion: "+test.error.message,false);
+      try{const d=localStorage.getItem("melange_v7");if(d){const p=JSON.parse(d);quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;}}catch{}
+      supaLoaded=false;render();return;
+    }
+  }catch(e){console.error("Init error:",e);showSync("⚠️ Mode local",false);try{const d=localStorage.getItem("melange_v7");if(d){const p=JSON.parse(d);quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;}}catch{}render();return;}
+
   showSync("⏳ Chargement...",null);
   try{
     const [r1,r2,r3,r4,r5,r6]=await Promise.all([
