@@ -189,7 +189,11 @@ function nClient(){return{id:Date.now(),number:"CLI-"+(""+clientCounter).padStar
 // Supabase
 const SUPA_URL="https://ljqxebgcekfxaiffkxrc.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqcXhlYmdjZWtmeGFpZmZreHJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MzY4NTEsImV4cCI6MjA5MTMxMjg1MX0.luj0aDwhvVNgBDpVJ1fLPzBo4dgQHm4zDi60t5uvWLM";
-const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+let supa=null;
+try{
+  if(window.supabase){supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);}
+  else{console.error("Supabase JS not loaded!");}
+}catch(e){console.error("Supabase init error:",e);}
 let supaLoaded=false;
 
 function showSync(msg,ok){
@@ -239,6 +243,7 @@ async function saveAll(){
 }
 
 async function loadFromSupabase(){
+  if(!supa){showSync("⚠️ Supabase non chargé - mode local",false);try{const d=localStorage.getItem("melange_v7");if(d){const p=JSON.parse(d);quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;}}catch{}render();return;}
   // Test connection first
   try{
     const test=await supa.from("counters").select("id").limit(1);
@@ -831,7 +836,15 @@ function renderAttachPage(doc,img,name,PW,PH,ML,MR){
     doc.text(name,PW/2,PH-8,{align:"center"});
   }
 }
-loadFromSupabase();
+window.addEventListener('load', function(){
+  try{
+    if(window.supabase){
+      supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+      console.log("Supabase client initialized");
+    }
+  }catch(e){console.error("Late init error:",e);}
+  loadFromSupabase();
+});
 </script>
 </body>
 </html>
