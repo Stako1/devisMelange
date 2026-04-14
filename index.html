@@ -196,6 +196,24 @@ try{
 }catch(e){console.error("Supabase init error:",e);}
 let supaLoaded=false;
 
+// App state variables
+let quotes=[],bcList=[],bpList=[];
+let counter=1,bcCounter=1,bpCounter=1;
+let globalComs=[],clients=[],clientCounter=1;
+let view="list",cur=null,mainTab="devis";
+
+// Load from localStorage as fallback
+try{
+  const d=localStorage.getItem("melange_v7");
+  if(d){
+    const p=JSON.parse(d);
+    quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];
+    counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;
+    globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;
+  }
+}catch(e){}
+
+
 function showSync(msg,ok){
   let el=document.getElementById("sync-indicator");
   if(!el){
