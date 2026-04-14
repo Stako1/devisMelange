@@ -190,83 +190,88 @@ function nClient(){return{id:Date.now(),number:"CLI-"+(""+clientCounter).padStar
 const SUPA_URL="https://ljqxebgcekfxaiffkxrc.supabase.co";
 const SUPA_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxqcXhlYmdjZWtmeGFpZmZreHJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MzY4NTEsImV4cCI6MjA5MTMxMjg1MX0.luj0aDwhvVNgBDpVJ1fLPzBo4dgQHm4zDi60t5uvWLM";
 const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
-
-let quotes=[],bcList=[],bpList=[];
-let counter=1,bcCounter=1,bpCounter=1;
-let globalComs=[],clients=[],clientCounter=1;
-let view="list",cur=null,mainTab="devis";
 let supaLoaded=false;
 
-// Indicateur de sync
 function showSync(msg,ok){
   let el=document.getElementById("sync-indicator");
-  if(!el){el=document.createElement("div");el.id="sync-indicator";el.style.cssText="position:fixed;bottom:16px;right:16px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;z-index:999;transition:all .3s";document.body.appendChild(el);}
-  el.textContent=msg;el.style.background=ok===false?"#fecaca":ok===true?"#d1fae5":"#e0f2fe";el.style.color=ok===false?"#991b1b":ok===true?"#065f46":"#0369a1";
-  if(ok!==null)setTimeout(()=>{if(el)el.style.opacity="0";},3000);
+  if(!el){
+    el=document.createElement("div");
+    el.id="sync-indicator";
+    el.style.cssText="position:fixed;bottom:16px;right:16px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .5s;box-shadow:0 2px 8px rgba(0,0,0,.15)";
+    document.body.appendChild(el);
+  }
+  el.style.opacity="1";
+  el.textContent=msg;
+  el.style.background=ok===false?"#fecaca":ok===true?"#d1fae5":"#e0f2fe";
+  el.style.color=ok===false?"#991b1b":ok===true?"#065f46":"#0369a1";
+  if(ok!==null){clearTimeout(el._t);el._t=setTimeout(()=>{el.style.opacity="0";},3000);}
 }
 
-// Charger depuis Supabase
-async function loadFromSupabase(){
-  showSync("⏳ Chargement des données...",null);
+async function upsertTable(table,arr){
+  if(!arr||!arr.length)return true;
+  const rows=arr.map(item=>{return{id:String(item.id),data:item};}); 
+  const {error}=await supa.from(table).upsert(rows,{onConflict:"id"});
+  if(error){console.error(table+" error:",error);return false;}
+  return true;
+}
+
+async function saveAll(){
+  // Local backup first
+  try{localStorage.setItem("melange_v7",JSON.stringify({quotes,bcList,bpList,counter,bcCounter,bpCounter,globalComs,clients,clientCounter}));}catch(e){}
+  if(!supaLoaded){showSync("💾 Local uniquement",false);return;}
+  showSync("⏳ Sauvegarde...",null);
   try{
-    const [d1,d2,d3,d4,d5,d6,d7,d8,d9,d10]=await Promise.all([
-      supa.from("quotes").select("*"),
-      supa.from("bc_list").select("*"),
-      supa.from("bp_list").select("*"),
-      supa.from("global_coms").select("*"),
-      supa.from("clients").select("*"),
-      supa.from("counters").select("*").eq("id","main").single(),
+    const results=await Promise.all([
+      upsertTable("quotes",quotes),
+      upsertTable("bc_list",bcList),
+      upsertTable("bp_list",bpList),
+      upsertTable("global_coms",globalComs),
+      upsertTable("clients",clients),
+      supa.from("counters").upsert({id:"main",counter,bc_counter:bcCounter,bp_counter:bpCounter,client_counter:clientCounter},{onConflict:"id"})
     ]);
-    if(d1.data)quotes=d1.data.map(r=>r.data);
-    if(d2.data)bcList=d2.data.map(r=>r.data);
-    if(d3.data)bpList=d3.data.map(r=>r.data);
-    if(d4.data)globalComs=d4.data.map(r=>r.data);
-    if(d5.data)clients=d5.data.map(r=>r.data);
-    if(d6.data&&!d6.error){
-      counter=d6.data.counter||1;bcCounter=d6.data.bc_counter||1;
-      bpCounter=d6.data.bp_counter||1;clientCounter=d6.data.client_counter||1;
+    const allOk=results.every(r=>r===true||(r&&!r.error));
+    if(allOk){showSync("✅ Sauvegardé",true);}
+    else{showSync("⚠️ Erreur partielle",false);}
+  }catch(e){
+    console.error("saveAll error:",e);
+    showSync("⚠️ Local uniquement",false);
+  }
+}
+
+async function loadFromSupabase(){
+  showSync("⏳ Chargement...",null);
+  try{
+    const [r1,r2,r3,r4,r5,r6]=await Promise.all([
+      supa.from("quotes").select("data"),
+      supa.from("bc_list").select("data"),
+      supa.from("bp_list").select("data"),
+      supa.from("global_coms").select("data"),
+      supa.from("clients").select("data"),
+      supa.from("counters").select("*").eq("id","main").maybeSingle()
+    ]);
+    if(r1.error)throw r1.error;
+    quotes=r1.data?r1.data.map(r=>r.data):[];
+    bcList=r2.data?r2.data.map(r=>r.data):[];
+    bpList=r3.data?r3.data.map(r=>r.data):[];
+    globalComs=r4.data?r4.data.map(r=>r.data):[];
+    clients=r5.data?r5.data.map(r=>r.data):[];
+    if(r6.data){
+      counter=r6.data.counter||1;
+      bcCounter=r6.data.bc_counter||1;
+      bpCounter=r6.data.bp_counter||1;
+      clientCounter=r6.data.client_counter||1;
     }
     supaLoaded=true;
     showSync("✅ Données synchronisées",true);
     render();
   }catch(e){
-    console.error("Supabase load error",e);
-    showSync("⚠️ Mode hors ligne (données locales)",false);
-    loadLocal();render();
+    console.error("loadFromSupabase error:",e);
+    showSync("⚠️ Mode hors ligne",false);
+    try{const d=localStorage.getItem("melange_v7");if(d){const p=JSON.parse(d);quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;}}catch{}
+    render();
   }
 }
 
-function loadLocal(){
-  try{const d=localStorage.getItem("melange_v7");if(d){const p=JSON.parse(d);quotes=p.quotes||[];bcList=p.bcList||[];bpList=p.bpList||[];counter=p.counter||1;bcCounter=p.bcCounter||1;bpCounter=p.bpCounter||1;globalComs=p.globalComs||[];clients=p.clients||[];clientCounter=p.clientCounter||1;}}catch{}
-}
-
-async function saveAll(){
-  // Toujours sauvegarder en local d'abord
-  try{localStorage.setItem("melange_v7",JSON.stringify({quotes,bcList,bpList,counter,bcCounter,bpCounter,globalComs,clients,clientCounter}));}catch{}
-  // Puis sync Supabase
-  if(!supaLoaded)return;
-  showSync("⏳ Sauvegarde...",null);
-  try{
-    // Upsert toutes les collections
-    const upsertCollection=async(table,arr)=>{
-      if(!arr.length)return;
-      await supa.from(table).upsert(arr.map(item=>{return{id:String(item.id),data:item};}));
-    };
-    await Promise.all([
-      upsertCollection("quotes",quotes),
-      upsertCollection("bc_list",bcList),
-      upsertCollection("bp_list",bpList),
-      upsertCollection("global_coms",globalComs),
-      upsertCollection("clients",clients),
-      supa.from("counters").upsert({id:"main",counter,bc_counter:bcCounter,bp_counter:bpCounter,client_counter:clientCounter}),
-    ]);
-    // Supprimer les éléments effacés
-    showSync("✅ Sauvegardé",true);
-  }catch(e){
-    console.error("Supabase save error",e);
-    showSync("⚠️ Sauvegardé en local uniquement",false);
-  }
-}
 
 function exportData(){
   const data={quotes,bcList,bpList,counter,bcCounter,bpCounter,globalComs,clients,clientCounter,exportDate:new Date().toISOString()};
