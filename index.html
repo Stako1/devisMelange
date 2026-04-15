@@ -192,7 +192,7 @@ function render(){
     var tabs=["devis","bc","bp","clients"];
     var tabLabels={devis:"Devis",bc:"Bons de commande",bp:"Bons de production",clients:"Clients"};
     var tabsHtml='<div class="nav-tabs">';
-    tabs.forEach(function(t){tabsHtml+='<button class="nav-tab'+(mainTab==t?" active":"")+"" onclick="setTab('"+t+"')">"+tabLabels[t]+"</button>";});
+    tabs.forEach(function(t){var cls="nav-tab"+(mainTab==t?" active":"");tabsHtml+='<button class="'+cls+'" onclick="setTab(\'"+t+"\')">'+tabLabels[t]+"</button>";});
     tabsHtml+="</div>";
     $("app").innerHTML='<div class="main fi">'+tabsHtml+'<div id="main-content"></div></div>';
     if(mainTab=="clients")rClientList();else if(mainTab=="bc")rDocList("bc");else if(mainTab=="bp")rDocList("bp");else rQuoteList();
