@@ -217,14 +217,14 @@ function render(){
   if(view==="list"){
     const lbls={devis:"+ Devis",bc:"+ BC",bp:"+ BP",clients:"+ Client"};
     hdr.innerHTML='<button class="btn btn-ghost btn-sm" onclick="exportData()">💾 Export</button><button class="btn btn-ghost btn-sm" onclick="importData()">📂 Import</button><button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙️</button><button class="btn btn-primary" onclick="openNew()">'+(lbls[mainTab]||"+ Nouveau")+'</button>';
-    $("app").innerHTML='<div class="main fi"><div class="nav-tabs"><button class="nav-tab'+(mainTab==="devis"?" active":"")+'" onclick="mainTab='devis';render()">Devis</button><button class="nav-tab'+(mainTab==="bc"?" active":"")+'" onclick="mainTab='bc';render()">Bons de commande</button><button class="nav-tab'+(mainTab==="bp"?" active":"")+'" onclick="mainTab='bp';render()">Bons de production</button><button class="nav-tab'+(mainTab==="clients"?" active":"")+'" onclick="mainTab='clients';render()">Clients</button></div><div id="main-content"></div></div>';
+    $("app").innerHTML='<div class="main fi"><div class="nav-tabs"><button class="nav-tab'+(mainTab==="devis"?" active":"")+'" onclick="mainTab=\'devis\';render()">Devis</button><button class="nav-tab'+(mainTab==="bc"?" active":"")+'" onclick="mainTab=\'bc\';render()">Bons de commande</button><button class="nav-tab'+(mainTab==="bp"?" active":"")+'" onclick="mainTab=\'bp\';render()">Bons de production</button><button class="nav-tab'+(mainTab==="clients"?" active":"")+'" onclick="mainTab=\'clients\';render()">Clients</button></div><div id="main-content"></div></div>';
     if(mainTab==="clients")rClientList();else if(mainTab==="bc")rDocList("bc");else if(mainTab==="bp")rDocList("bp");else rQuoteList();
   }else if(view==="edit"&&cur){
     hdr.innerHTML='<button class="btn btn-ghost" onclick="gList()">← Liste</button><button class="btn btn-ghost" onclick="prevDoc()">Aperçu</button><button class="btn btn-primary" onclick="savDoc()">💾 Enregistrer</button>';
     rEdit();
   }else if(view==="preview"&&cur){
     const t=cur._type;
-    let b='<button class="btn btn-ghost" onclick="gList()">← Liste</button><button class="btn btn-ghost" onclick="view='edit';render()">✏️ Modifier</button>';
+    let b='<button class="btn btn-ghost" onclick="gList()">← Liste</button><button class="btn btn-ghost" onclick="view=\'edit\';render()">✏️ Modifier</button>';
     if(t==="devis")b+='<button class="btn btn-red btn-sm" onclick="exportPDF()">⬇ PDF</button><button class="btn btn-red btn-sm" onclick="doBC()">📄→BC</button><button class="btn btn-purple btn-sm" onclick="doBP()">🛠→BP</button>';
     if(t==="bc")b+='<button class="btn btn-red" onclick="exportPDF()">⬇ PDF BC</button>';
     if(t==="bp")b+='<button class="btn btn-purple" onclick="exportPDF()">⬇ PDF BP</button>';
@@ -234,7 +234,7 @@ function render(){
     hdr.innerHTML='<button class="btn btn-ghost" onclick="gList()">← Liste</button><button class="btn btn-primary" onclick="saveSettings()">Enregistrer</button>';
     rSettings();
   }else if(view==="client-edit"){
-    hdr.innerHTML='<button class="btn btn-ghost" onclick="mainTab='clients';view='list';render()">← Clients</button><button class="btn btn-primary" onclick="savClient()">💾 Enregistrer</button>';
+    hdr.innerHTML='<button class="btn btn-ghost" onclick="mainTab=\'clients\';view=\'list\';render()">← Clients</button><button class="btn btn-primary" onclick="savClient()">💾 Enregistrer</button>';
     rClientEdit();
   }
 }
@@ -252,7 +252,7 @@ function rQItems(){
   el.innerHTML=f.map(q=>{
     const t=cT(q.lines,q.tvaRate||20),sc=SC[q.status]||"#94a3b8";
     const hBC=bcList.some(b=>b.sourceNum===q.number),hBP=bpList.some(b=>b.sourceNum===q.number);
-    return '<div class="list-item"><div style="flex:1;min-width:180px"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px"><span style="font-weight:700">'+q.number+'</span><span class="status-badge" style="background:'+sc+'22;color:'+sc+'">'+q.status+'</span>'+(hBC?'<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:#ffeef0;color:#c8001e;font-weight:600">BC</span>':'')+(hBP?'<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:#f5f3ff;color:#7c3aed;font-weight:600">BP</span>':'')+'</div><div style="font-size:13px;color:#374151">'+(q.client.name||'<em style="color:#9ca3af">Client non renseigné</em>')+'</div><div style="font-size:11px;color:#9ca3af">'+q.date+'</div><div class="quick-actions"><button class="btn btn-red btn-sm" onclick="quickDoc(''+q.id+'','bc',event)">📄→BC</button><button class="btn btn-purple btn-sm" onclick="quickDoc(''+q.id+'','bp',event)">🛠→BP</button></div></div><div style="text-align:right;min-width:75px"><div style="font-weight:700;font-size:14px">'+fmtW(t.ttc)+'</div><div style="font-size:10px;color:#9ca3af">TTC</div></div><div style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="oPrev(''+q.id+'','devis')">👁</button><button class="btn btn-ghost btn-sm" onclick="oEdit(''+q.id+'','devis')">✏️</button><button class="btn btn-ghost btn-sm" onclick="dupQ(''+q.id+'')">⧉</button><button class="btn btn-danger btn-sm" onclick="delDoc(''+q.id+'','devis')">🗑</button></div></div>';
+    return '<div class="list-item"><div style="flex:1;min-width:180px"><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px"><span style="font-weight:700">'+q.number+'</span><span class="status-badge" style="background:'+sc+'22;color:'+sc+'">'+q.status+'</span>'+(hBC?'<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:#ffeef0;color:#c8001e;font-weight:600">BC</span>':'')+(hBP?'<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:#f5f3ff;color:#7c3aed;font-weight:600">BP</span>':'')+'</div><div style="font-size:13px;color:#374151">'+(q.client.name||'<em style="color:#9ca3af">Client non renseigné</em>')+'</div><div style="font-size:11px;color:#9ca3af">'+q.date+'</div><div class="quick-actions"><button class="btn btn-red btn-sm" onclick="quickDoc(''+q.id+'',\'bc\',event)">📄→BC</button><button class="btn btn-purple btn-sm" onclick="quickDoc(''+q.id+'',\'bp\',event)">🛠→BP</button></div></div><div style="text-align:right;min-width:75px"><div style="font-weight:700;font-size:14px">'+fmtW(t.ttc)+'</div><div style="font-size:10px;color:#9ca3af">TTC</div></div><div style="display:flex;gap:3px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="oPrev(''+q.id+'',\'devis\')">👁</button><button class="btn btn-ghost btn-sm" onclick="oEdit(''+q.id+'',\'devis\')">✏️</button><button class="btn btn-ghost btn-sm" onclick="dupQ(''+q.id+'')">⧉</button><button class="btn btn-danger btn-sm" onclick="delDoc(''+q.id+'',\'devis\')">🗑</button></div></div>';
   }).join("");
 }
 
