@@ -654,17 +654,27 @@ async function exportPDF(){
   function sF(bold,size,col){doc.setFont("helvetica",bold?"bold":"normal");doc.setFontSize(size);if(col)doc.setTextColor(col[0],col[1],col[2]);}
   function hl(yy,col,lw){if(col)doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(lw||0.4);doc.line(ML,yy,PW-MR,yy);}
   function chkPage(needed){if(y+needed>PH-20){doc.addPage();y=20;}}
-  // Logo + adresse alignes
-  try{var lH=Math.round(50/2.37);doc.addImage(LOGO_SRC,"JPEG",ML,y,50,lH,"","FAST");y+=lH+4;}catch(x){y+=20;}
-  sF(false,9,[75,85,99]);doc.text(c.company.address,ML,y);y+=4.5;doc.text(c.company.city,ML,y);y+=4.5;
-  if(c.company.email){doc.text(c.company.email,ML,y);y+=4.5;}
-  if(c.company.phone){doc.text(c.company.phone,ML,y);y+=4.5;}
-  // Titre doc
-  sF(true,isBP?13:22,rc);doc.text(docLabel,PW-MR,20,{align:"right"});
-  sF(false,11,[107,114,128]);doc.text(c.number,PW-MR,30,{align:"right"});
-  sF(false,9,[156,163,175]);doc.text("Emis le : "+c.date,PW-MR,37,{align:"right"});doc.text("Valable : "+c.validUntil,PW-MR,43,{align:"right"});
-  if(c.sourceNum){sF(false,8,[156,163,175]);doc.text("Issu du devis "+c.sourceNum,PW-MR,49,{align:"right"});}
-  y=Math.max(y,52)+3;doc.setDrawColor(rc[0],rc[1],rc[2]);doc.setLineWidth(0.8);doc.line(ML,y,PW-MR,y);y+=7;
+  // Logo homothétique + adresse alignée
+  var logoW=45,logoH=Math.round(logoW/2.369);
+  var startY=16;
+  try{doc.addImage(LOGO_SRC,"JPEG",ML,startY,logoW,logoH,"","FAST");}catch(x){}
+  // Adresse sous le logo, même alignement
+  var addrY=startY+logoH+5;
+  doc.setFont("helvetica","normal");doc.setFontSize(9);doc.setTextColor(75,85,99);
+  doc.text(c.company.address,ML,addrY);addrY+=4.5;
+  doc.text(c.company.city,ML,addrY);addrY+=4.5;
+  if(c.company.email){doc.text(c.company.email,ML,addrY);addrY+=4.5;}
+  if(c.company.phone){doc.text(c.company.phone,ML,addrY);addrY+=4.5;}
+  // Titre document - colonne droite, même police Georgia-like avec helvetica
+  doc.setFont("helvetica","bold");doc.setFontSize(isBP?12:20);doc.setTextColor(rc[0],rc[1],rc[2]);
+  doc.text(docLabel,PW-MR,20,{align:"right"});
+  doc.setFont("helvetica","normal");doc.setFontSize(11);doc.setTextColor(107,114,128);
+  doc.text(c.number,PW-MR,30,{align:"right"});
+  doc.setFontSize(9);doc.setTextColor(156,163,175);
+  doc.text("Emis le : "+c.date,PW-MR,37,{align:"right"});
+  doc.text("Valable : "+c.validUntil,PW-MR,43,{align:"right"});
+  if(c.sourceNum){doc.setFontSize(8);doc.text("Issu du devis "+c.sourceNum,PW-MR,49,{align:"right"});}
+  y=Math.max(addrY,52)+3;doc.setDrawColor(rc[0],rc[1],rc[2]);doc.setLineWidth(0.8);doc.line(ML,y,PW-MR,y);y+=7;
   // Coms - Tel puis Mail
   var coms=globalComs.filter(function(g){return (c.selectedComs||[]).includes(g.id);});
   if(coms.length){sF(false,8,[156,163,175]);doc.text("VOTRE COMMERCIAL",ML,y);y+=5;coms.forEach(function(com){sF(true,10,[26,26,26]);doc.text(com.name,ML,y);y+=4.5;if(com.phone){sF(false,9,[107,114,128]);doc.text(com.phone,ML,y);y+=4.5;}if(com.email){sF(false,9,[rc[0],rc[1],rc[2]]);doc.text(com.email,ML,y);y+=4.5;}});y+=2;hl(y,[229,231,235],0.3);y+=6;}
